@@ -123,11 +123,6 @@ Separação clara de responsabilidades:
 - Aparência
 - Lógica do jogo
 
-### 5. Código mais Profissional
-
-- Segue boas práticas
-- Mais próximo de projetos reais
-
 ---
 
 ## 🚀 Benefícios Finais
@@ -136,9 +131,3 @@ Separação clara de responsabilidades:
 - Mais fácil de entender
 - Mais fácil de evoluir
 - Mais organizado
-
----
-
-## ✅ Conclusão
-
-A refatoração transformou um código simples e funcional em um código mais estruturado, organizado e preparado para evoluções futuras.
