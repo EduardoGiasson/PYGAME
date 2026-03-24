@@ -3,23 +3,13 @@ import pygame
 import sys
 
 pygame.init()
-pygame.mixer.init()
-
-som_raquete = pygame.mixer.Sound("sounds/barulhoraquete.mp3")
-som_gol = pygame.mixer.Sound("sounds/gol.mp3")
-
-pygame.mixer.music.load("sounds/musicafundo.mp3")
-pygame.mixer.music.set_volume(0.3)
-
 class Cores:
     PRETO = (0, 0, 0)
     BRANCO = (255, 255, 255)
-
 class Config:
     LARGURA = 800
     ALTURA = 600
     FPS = 60
-
 class JogoConfig:
     RAQUETE_LARGURA = 10
     RAQUETE_ALTURA = 60
@@ -76,12 +66,10 @@ class Bola:
 
         if self.y <= 0 or self.y >= Config.ALTURA - JogoConfig.TAMANHO_BOLA:
             self.vel_y = -self.vel_y
-            som_raquete.play()
 
     def colisao(self, player1, player2):
         if self.get_rect().colliderect(player1.get_rect()) or self.get_rect().colliderect(player2.get_rect()):
             self.vel_x = -self.vel_x
-            som_raquete.play()
 
     def desenhar(self, tela):
         pygame.draw.circle(tela, Cores.BRANCO, (self.x, self.y), JogoConfig.TAMANHO_BOLA)
@@ -122,8 +110,6 @@ def menu_principal():
 def game():
     clock = pygame.time.Clock()
 
-    pygame.mixer.music.play(-1)
-
     player1 = Player(15, Config.ALTURA//2 - JogoConfig.RAQUETE_ALTURA//2)
     player2 = Player(Config.LARGURA - 15 - JogoConfig.RAQUETE_LARGURA,
                      Config.ALTURA//2 - JogoConfig.RAQUETE_ALTURA//2)
@@ -138,10 +124,6 @@ def game():
             if evento.type == pygame.QUIT:
                 return True
 
-            if evento.type == pygame.USEREVENT + 1:
-                som_gol.stop()
-                pygame.time.set_timer(pygame.USEREVENT + 1, 0)
-
         tela.fill(Cores.PRETO)
 
         bola.mover()
@@ -149,26 +131,16 @@ def game():
 
         if bola.x <= 0:
             score_player2 += 1
-            som_gol.play()
-            pygame.time.set_timer(pygame.USEREVENT + 1, 2000)
             bola.reset()
-
-            if score_player2 >= 10:
-                pygame.mixer.music.stop()
-                som_raquete.stop()
-                som_gol.stop()
+            if score_player2 >= 2:
+                print("Player 2 venceu!")
                 return True
 
         if bola.x >= Config.LARGURA - JogoConfig.TAMANHO_BOLA:
             score_player1 += 1
-            som_gol.play()
-            pygame.time.set_timer(pygame.USEREVENT + 1, 2000)
             bola.reset()
-
             if score_player1 >= 10:
-                pygame.mixer.music.stop()
-                som_raquete.stop()
-                som_gol.stop()
+                print("Player 1 venceu!")
                 return True
 
         keys = pygame.key.get_pressed()
