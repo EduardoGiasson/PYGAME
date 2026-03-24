@@ -138,7 +138,6 @@ def game():
             if evento.type == pygame.QUIT:
                 return True
 
-            # Evento para parar som do gol
             if evento.type == pygame.USEREVENT + 1:
                 som_gol.stop()
                 pygame.time.set_timer(pygame.USEREVENT + 1, 0)
