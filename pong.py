@@ -44,6 +44,7 @@ class Player:
         return pygame.Rect(self.x, self.y, JogoConfig.RAQUETE_LARGURA, JogoConfig.RAQUETE_ALTURA)
 
 class Bola:
+
     def __init__(self, x=None, y=None, verdadeira=False):
         self.x = x if x else Config.LARGURA//2
         self.y = y if y else Config.ALTURA//2
@@ -52,17 +53,34 @@ class Bola:
         self.cor = Cores.BRANCO if verdadeira else (random.randint(50,255), random.randint(50,255), random.randint(50,255))
         self.verdadeira = verdadeira
 
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.x = Config.LARGURA//2 - JogoConfig.TAMANHO_BOLA//2
+        self.y = Config.ALTURA//2 - JogoConfig.TAMANHO_BOLA//2
+        self.vel_x = random.choice([-6, 6])
+        self.vel_y = random.choice([-4, -3, -2, 2, 3, 4])
+
     def mover(self):
         self.x += self.vel_x
         self.y += self.vel_y
         if self.y <= 0 or self.y >= Config.ALTURA - JogoConfig.TAMANHO_BOLA:
-            self.vel_y = -self.vel_y
+            self.vel_y = -self.vel_y + random.randint(-4, 4)
 
     def colisao(self, player1, player2):
         if self.get_rect().colliderect(player1.get_rect()) or self.get_rect().colliderect(player2.get_rect()):
+
             self.vel_x = -self.vel_x
             return True
         return False
+
+
+            self.vel_x = -self.vel_x * 1.1  
+            self.vel_y += random.randint(-5, 5)
+
+            if abs(self.vel_y) > 10:
+                self.vel_y = 10 if self.vel_y > 0 else -10
 
     def desenhar(self, tela):
         pygame.draw.circle(tela, self.cor, (self.x, self.y), JogoConfig.TAMANHO_BOLA)
@@ -133,6 +151,18 @@ def game():
                 if bola.x >= Config.LARGURA - JogoConfig.TAMANHO_BOLA:
                     score_player1 += 1
                     bolas = [Bola(verdadeira=True)]
+
+        if bola.x <= 0:
+            score_player2 += 1
+            bola.reset()
+            if score_player2 >= 2:
+                return True
+
+        if bola.x >= Config.LARGURA - JogoConfig.TAMANHO_BOLA:
+            score_player1 += 1
+            bola.reset()
+            if score_player1 >= 10:
+                return True
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
