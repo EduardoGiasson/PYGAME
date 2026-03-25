@@ -61,30 +61,36 @@ class Player:
         )
 
 class Bola:
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.x = Config.LARGURA//2 - JogoConfig.TAMANHO_BOLA//2
-        self.y = Config.ALTURA//2 - JogoConfig.TAMANHO_BOLA//2
-        self.vel_x = random.choice([-5, 5])
-        self.vel_y = random.choice([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5])
+    def __init__(self, x=None, y=None, verdadeira=False):
+        self.x = x if x else Config.LARGURA//2
+        self.y = y if y else Config.ALTURA//2
+        self.vel_x = random.choice([-6, 6])
+        self.vel_y = random.choice([-4, -3, -2, 2, 3, 4])
+        self.cor = Cores.BRANCO if verdadeira else (random.randint(50,255), random.randint(50,255), random.randint(50,255))
+        self.verdadeira = verdadeira
 
     def mover(self):
         self.x += self.vel_x
         self.y += self.vel_y
 
         if self.y <= 0 or self.y >= Config.ALTURA - JogoConfig.TAMANHO_BOLA:
-            self.vel_y = -self.vel_y
+            self.vel_y = -self.vel_y + random.randint(-4, 4)
             som_raquete.play()
 
     def colisao(self, player1, player2):
         if self.get_rect().colliderect(player1.get_rect()) or self.get_rect().colliderect(player2.get_rect()):
-            self.vel_x = -self.vel_x
+            self.vel_x = -self.vel_x * 1.1
+            self.vel_y += random.randint(-5, 5)
+
+            if abs(self.vel_y) > 10:
+                self.vel_y = 10 if self.vel_y > 0 else -10
+
             som_raquete.play()
+            return True
+        return False
 
     def desenhar(self, tela):
-        pygame.draw.circle(tela, Cores.BRANCO, (self.x, self.y), JogoConfig.TAMANHO_BOLA)
+        pygame.draw.circle(tela, self.cor, (self.x, self.y), JogoConfig.TAMANHO_BOLA)
 
     def get_rect(self):
         return pygame.Rect(self.x, self.y, JogoConfig.TAMANHO_BOLA, JogoConfig.TAMANHO_BOLA)
@@ -128,7 +134,8 @@ def game():
     player2 = Player(Config.LARGURA - 15 - JogoConfig.RAQUETE_LARGURA,
                      Config.ALTURA//2 - JogoConfig.RAQUETE_ALTURA//2)
 
-    bola = Bola()
+    bolas = [Bola(verdadeira=True)]
+    tempo_multiplicacao = pygame.time.get_ticks()
 
     score_player1 = 0
     score_player2 = 0
@@ -144,32 +151,44 @@ def game():
 
         tela.fill(Cores.PRETO)
 
-        bola.mover()
-        bola.colisao(player1, player2)
+        tempo_atual = pygame.time.get_ticks()
+        novas_bolas = []
 
-        if bola.x <= 0:
-            score_player2 += 1
-            som_gol.play()
-            pygame.time.set_timer(pygame.USEREVENT + 1, 2000)
-            bola.reset()
+        for bola in bolas:
+            bola.mover()
+            if bola.colisao(player1, player2):
+                if tempo_atual - tempo_multiplicacao >= 5000:
+                    for _ in range(4):
+                        novas_bolas.append(Bola(bola.x, bola.y, False))
+                    tempo_multiplicacao = tempo_atual
 
-            if score_player2 >= 10:
-                pygame.mixer.music.stop()
-                som_raquete.stop()
-                som_gol.stop()
-                return True
+        bolas.extend(novas_bolas)
 
-        if bola.x >= Config.LARGURA - JogoConfig.TAMANHO_BOLA:
-            score_player1 += 1
-            som_gol.play()
-            pygame.time.set_timer(pygame.USEREVENT + 1, 2000)
-            bola.reset()
+        for bola in bolas:
+            if bola.verdadeira:
+                if bola.x <= 0:
+                    score_player2 += 1
+                    som_gol.play()
+                    pygame.time.set_timer(pygame.USEREVENT + 1, 2000)
+                    bolas = [Bola(verdadeira=True)]
 
-            if score_player1 >= 10:
-                pygame.mixer.music.stop()
-                som_raquete.stop()
-                som_gol.stop()
-                return True
+                    if score_player2 >= 10:
+                        pygame.mixer.music.stop()
+                        som_raquete.stop()
+                        som_gol.stop()
+                        return True
+
+                if bola.x >= Config.LARGURA - JogoConfig.TAMANHO_BOLA:
+                    score_player1 += 1
+                    som_gol.play()
+                    pygame.time.set_timer(pygame.USEREVENT + 1, 2000)
+                    bolas = [Bola(verdadeira=True)]
+
+                    if score_player1 >= 10:
+                        pygame.mixer.music.stop()
+                        som_raquete.stop()
+                        som_gol.stop()
+                        return True
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
@@ -177,11 +196,14 @@ def game():
         if keys[pygame.K_DOWN]:
             player1.mover(1)
 
-        player2.ia(bola.y)
+        if bolas:
+            player2.ia(bolas[0].y)
 
         player1.desenhar(tela)
         player2.desenhar(tela)
-        bola.desenhar(tela)
+
+        for bola in bolas:
+            bola.desenhar(tela)
 
         font_score = pygame.font.SysFont(None, 36)
         score_text = font_score.render(f"{score_player1} - {score_player2}", True, Cores.BRANCO)
