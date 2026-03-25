@@ -133,14 +133,12 @@ def game():
             score_player2 += 1
             bola.reset()
             if score_player2 >= 2:
-                print("Player 2 venceu!")
                 return True
 
         if bola.x >= Config.LARGURA - JogoConfig.TAMANHO_BOLA:
             score_player1 += 1
             bola.reset()
             if score_player1 >= 10:
-                print("Player 1 venceu!")
                 return True
 
         keys = pygame.key.get_pressed()
